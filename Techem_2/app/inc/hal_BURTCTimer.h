@@ -86,7 +86,7 @@ typedef enum {
 #define BATTERY_MEASURMENT_BIST_PERIOD  PERIOD_SET(86400u)  /**<24 Hr =86400 sec*/
 #define TIMESTAMP_PERIOD PERIOD_SET(60u) /**<1 min  =60 sec*/
 #define VARIANCE_PERIOD_NON_OPERATIONAL  PERIOD_SET(180u)  /**< 3 min*/
-#define HEARTBEAT_PERIOD PERIOD_SET(60u),/**<3 every 60 sec */
+#define HEARTBEAT_PERIOD PERIOD_SET(60u) /**<3 every 60 sec */
 #define FAULT_SILENCE_TIMEOUT PERIOD_SET(86400u)/**< PTR-267  24 Hr =86400 sec */
 #define SMOKE_MEASUREMENT PERIOD_SET(10u)/**< Smoke Detection 10 sec */
 #define SMOKE_BIST_MEASUREMENT PERIOD_SET(3600u)   /**<6 PTR-1188  Smoke – Degraded Chamber every hour Need to change*/
@@ -98,6 +98,8 @@ typedef enum {
 #define CO_INCREASED_SAMPLE_RATE PERIOD_SET(10u)/**< Increased CO detected change rate of acquisition , periodic  10sec */
 #define BUZZER_BIST_PERIOD PERIOD_SET(604800u)/**< Buzzer BIST  , periodic  every 7 days*/
 #define OBSTACLE_COVARAGE_PERIOD PERIOD_SET(604800u)//**< Obstacle & Coverage  Detection/BIST , periodic every 7 days*/
+/*test*/
+#define STORT_PERIOD PERIOD_SET(300u)//**< Obstacle & Coverage  Detection/BIST , periodic every 7 days*/
 #define TEMP_HUMIDITY_PERIOD PERIOD_SET(120u) /**<Temperature & Humidity BIST & measurement,periodic= 2 min */
 #define AMBIENT_MEASUREMENT_PERIOD PERIOD_SET(360u)  /**< AmbientLight Power, periodic= every 6 min */
 #define AIRING_CONFIGURATION_TIMEOUT PERIOD_SET(30u)/**< Airing Configuration, Non-periodic 30 sec */
@@ -105,6 +107,13 @@ typedef enum {
 #define WATCHDOG_TIMER PERIOD_SET(180)  /**<4 Watchdog Task , periodic periodic = 3min, Need to change  */
 #define ALARM_SILENCE_TIMEOUT PERIOD_SET (870)  /**< TimeOut  = 14.30 min, Need to change  */
 
+
+
+//Add each event periodicity.
+#define SMOKE_MEASURE_EVENT_PERIOD            1u    /*1 BURTC tick period i.e. 10sec*/
+#define AmbientLight_MEASURE_EVENT_PERIOD     36u   /*36 BURTC tick period i.e. 360sec*/
+
+#define DEBUG_LOGGING_EVENT                   (1u << 1) /* uart serial debug event flag */
 
 #define periodical          true
 #define one_shot            false

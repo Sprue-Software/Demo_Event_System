@@ -1,8 +1,8 @@
 /*********************************************************************************
- * @file	event_system.c
- * @brief	Handle the behaviour of the alarm. Event handler.
+ * @file  event_system.c
+ * @brief Handle the behaviour of the alarm. Event handler.
  * @project Techem-P200 Firmware
- * @date	29 Mar 2022
+ * @date  29 Mar 2022
  * @author  NDI
 
  *******************************************************************************/
@@ -28,7 +28,7 @@
 #include "hal_BURTCTimer.h"
 #include "events.h"
 #include "app.h"
-#include "event_system.h"
+#include "system_events.h"
 #include "diagnostics.h"
 #include "SwitchTask.h"
 #include "Acquisition_CO.h"
@@ -108,7 +108,7 @@ void runOperateModule (OS_FLAGS flags_0, OS_FLAGS flags_1)
        * In active on-base/shipping tag removed state
        * From here can either enter off-base state or shutdown(very low battery) state
        */
-      if ((flags_0 & FLAGS_BIT_INDEX(TMR_Device_ADS_enable_event_0)) != 0u)
+      if ((flags_0 & FLAGS_BIT_INDEX(TMR_Device_ADS_disable_event_0)) != 0u)
         {
           DEBUG_APP("Enter DISABLED", false, 0u);
           handleDeviceDisable ();
@@ -132,7 +132,7 @@ void runOperateModule (OS_FLAGS flags_0, OS_FLAGS flags_1)
        * In Disable/Off-base/shipping tag inserted state
        * From here can either enter on base state
        */
-      if ((flags_0 & FLAGS_BIT_INDEX(TMR_Device_ADS_disable_event_0)) != 0u)
+      if ((flags_0 & FLAGS_BIT_INDEX(TMR_Device_ADS_enable_event_0)) != 0u)
         {
           DEBUG_APP("Enter ACTIVE", false, 0u);
           ADS_operateState = operate_active;/* Device has been placed on base so switch to operate_active State */
@@ -217,10 +217,12 @@ static void handle_System_Transport_Mode(OS_FLAGS flags_0, OS_FLAGS flags_1)
 
   if ((flags_0 & FLAGS_BIT_INDEX(TMR_BUTTON_PRESS_0)) != 0u)
     {
+      DEBUG_APP("Display Transport Mode", false, 0u);
       /* Dummy Function*/
             /* Get the Type of Button press */
            if (get_switches_type()==SHORT_PRESS)
              {
+
                  /* Take a Action */
                /*LED Post for Standby Mode */
                /*ledBuzz_Post (Stanby_pattern)*/
@@ -239,6 +241,7 @@ static void handle_System_Commisioning_Mode (OS_FLAGS flags_0, OS_FLAGS flags_1)
   (void)flags_1;
   (void)flags_0;
 
+  DEBUG_APP("Stuck in Commisioning mode", false, 0u);
   /* If demounted then it's handle by handleDeviceDisable()
    * disable all signals and change the system state = Standby Mode
    */
@@ -302,20 +305,32 @@ static void handle_System_Functional_Test_Mode (OS_FLAGS flags_0, OS_FLAGS flags
    /*ledBuzz_Post (Idle_pattern)*/
   /* After Timeout Change System mode To Previous mode Set Mode & Start the Timers*/
   /* Stop All Timers */
-  Stop_Diagnostic_BIST();
+  Stop_All_timers_except_timestamp();
+  DEBUG_APP("Start Functional Test Mode", false, 0u);
   if ((flags_0 & FLAGS_BIT_INDEX(TMR_State_Timeout_event_0)) != 0u)
     {
+      /* All generic Timers are started */
+      Start_All_timers();
       /* check the button press Type & perform the LED*/
-      DEBUG_APP("Display Transport Mode", false, 0u);
+      DEBUG_APP("Exit Functional Test Mode", false, 0u);
       /* This will swicthback the FTM Previous mode*/
       /* Start All Timers if operational mode*/
-      if (behavioural_system_mode_previous==Operational_Mode)
+      if ((behavioural_system_mode_previous==Operational_Mode)&&(ADS_operateState==operate_active))
         {
+
           Start_Diagnostic_BIST();
           setBehavioural_Operational_State(state_Idle);
         }
-      setBehavioural_System_Modes(behavioural_system_mode_previous);
+      else
+        {
 
+          setBehavioural_System_Modes(behavioural_system_mode_previous);
+        }
+
+    }
+  else
+    {
+      /*LDRA */
     }
   /* Get the request & start the Timers BURTC or LETIMERS in periodic as per FTM requirements*/
 
@@ -368,7 +383,11 @@ static void handle_System_ShutDown_Mode (OS_FLAGS flags_0, OS_FLAGS flags_1)
  */
 static void handle_State_idle (OS_FLAGS flags_0, OS_FLAGS flags_1)
 {
-  if ((flags_0 & FLAGS_BIT_INDEX(TMR_Heat_HIGH_SUPER_event_0)) != 0u)
+  (void)flags_1;
+  static int data =0;
+  DEBUG_APP("Idle mode", true, data);
+  data++;
+  if ((flags_0 & FLAGS_BIT_INDEX(TMR_Smoke_HIGH_SUPER_event_0)) != 0u)
     {
       DEBUG_APP("Smoke Alarm", false, 0u);
       /*check the  Smoke level and set the variables accordingly*/
@@ -383,6 +402,10 @@ static void handle_State_idle (OS_FLAGS flags_0, OS_FLAGS flags_1)
       /* Smoke Alarm Post + Logging */
       jumpToSmokeAlarm (true);
     }
+  else
+      {
+        /*LDRA */
+      }
 
   /* As the Smoke increase rate is 2 sec, Need to set LETIMER in Periodic
     Can Handle different by calling Letimer & Smoke Acqusition */
@@ -414,6 +437,7 @@ static void handle_State_idle (OS_FLAGS flags_0, OS_FLAGS flags_1)
          /* Heat Alarm Post + Logging */
       jumpToHeatAlarm (true);
     }
+
 
   if ((flags_0 & FLAGS_BIT_INDEX(TMR_COHB_HIGH_SUPER_event_0)) != 0u)
     {
@@ -455,7 +479,7 @@ static void handle_State_idle (OS_FLAGS flags_0, OS_FLAGS flags_1)
       switch_test=get_switches_type();
      if (switch_test==SHORT_PRESS)
        {
-         // DEBUG_APP(" Short Button Press", false, 0u);
+          DEBUG_APP(" Short Button Press", false, 0u);
          /* Perform Any Action on it */
          /* Fault Silence */
        }
@@ -474,8 +498,8 @@ static void handle_State_idle (OS_FLAGS flags_0, OS_FLAGS flags_1)
         }
       if (switch_test==Sequense_PRESS_Extended_Domestic_user)
         {
-           /* Call Diagnostic Bist and POST LED pattern from Diagnostic after completion  */
-          /*Call Diagnostic with extended*/
+          Call Diagnostic Bist and POST LED pattern from Diagnostic after completion
+         Call Diagnostic with extended*/
           diagnostics(behavioural_system_mode, ADS_operateState, 0);
 
         }
@@ -487,7 +511,11 @@ static void handle_State_idle (OS_FLAGS flags_0, OS_FLAGS flags_1)
              behavioural_operational_State=State_Airing_Configuration;
             /* Change Set System Mode event to Configuration with Timeout of 30 Sec*/
             /* Start LEtimer for 30 sec timeout on time out change system mode to operational mode Idle state*/
-             }
+            }
+      else
+          {
+            /*LDRA */
+          }
     }
 
 
@@ -524,7 +552,7 @@ static void handle_state_Smoke_Alarm (OS_FLAGS flags_0, OS_FLAGS flags_1)
       SmokeState = Smoke_none; /*Update local Smoke state*/
       /* Log The Alarm Stop*/
       behavioural_operational_State = state_Idle; /*Change state*/
-      /* ledBuzz_Post (pattern_idle); /*Stop alarm pattern */
+      /* ledBuzz_Post (pattern_idle); Stop alarm pattern */
 
     }
   /* Any Button Press Event will consider As Silence */
@@ -548,7 +576,7 @@ static void handle_state_Smoke_Alarm (OS_FLAGS flags_0, OS_FLAGS flags_1)
     }
 
 }
-/*
+
  /**
  * @brief Function definitions for Operational System Mode different State handling
  * @param flags_0 & flags_1
@@ -593,7 +621,7 @@ static void handle_state_Smoke_Silence (OS_FLAGS flags_0, OS_FLAGS flags_1)
 }
 
 }
-/*
+
  /**
  * @brief Function definitions for Operational System Mode different State handling
  * @param flags_0 & flags_1
@@ -650,8 +678,8 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_Heat_NONE_event_0)) != 0u)
   /* Clear all events*/
   HeatState = Heat_none; /*Update local Smoke state*/
   behavioural_operational_State = state_Idle; /*Change state*/
-  /* Log The Alarm Stop*/
-  /* ledBuzz_Post (pattern_idle); /*Stop alarm pattern */
+  /* Log The Alarm Stop
+ ledBuzz_Post (pattern_idle); Stop alarm pattern */
 
 }
 /* Any Button Press Event will consider As Silence */
@@ -663,8 +691,8 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_BUTTON_PRESS_0)) != 0u)
       DEBUG_APP("Enter Local Heat Alarm Silence Mode", false, 0u);
       BURTCTimer_Start (TMR_State_Timeout_event_0, false,ALARM_SILENCE_TIMEOUT); /*Start silence timeout*/
       behavioural_operational_State = state_Heat_Alarm_Silence; /*Change state*/
-      /*ledBuzz_Post (pattern_alarm_Smoke_silence); /*Start silence pattern*/
-      /*log_advancedEvent(eventType_localAlarmSilenceActivated, NULL);Log event to EEPROM*/
+      /*ledBuzz_Post (pattern_alarm_Smoke_silence); Start silence pattern
+    log_advancedEvent(eventType_localAlarmSilenceActivated, NULL);Log event to EEPROM*/
     }
   else
     {
@@ -672,7 +700,7 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_BUTTON_PRESS_0)) != 0u)
     }
 }
 }
-/*
+
  /**
  * @brief Function definitions for Operational System Mode different State handling
  * @param flags_0 & flags_1
@@ -741,11 +769,11 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_State_Timeout_event_0)) != 0u)
 {
   /*Silence timeout so back to full alarm state*/
   DEBUG_APP("Local Heat Alarm Silence Timeout", false, 0u);
-  /* log_advancedEvent(eventType_localAlarmSilenceExit, NULL); /*Log to EEPROM*/
+  /* log_advancedEvent(eventType_localAlarmSilenceExit, NULL); Log to EEPROM*/
 jumpToHeatAlarm(false); /*Enter alarm state, but not as a new alarm*/
 }
 }
-/*
+
  /**
  * @brief Function definitions for Operational System Mode different State handling
  * @param flags_0 & flags_1
@@ -824,8 +852,8 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_BUTTON_PRESS_0)) != 0u)
         DEBUG_APP("Enter Local CO Alarm Silence Mode", false, 0u);
         BURTCTimer_Start (TMR_State_Timeout_event_0, false, ALARM_SILENCE_TIMEOUT); /*Start silence timeout*/
         behavioural_operational_State = state_CO_Alarm_Silence; /*Change state*/
-        /*log_advancedEvent(eventType_localAlarmSilenceActivated, NULL);/*Log event to EEPROM*/
-        /*ledBuzz_Post (pattern_alarm_CO_silence); /*Start silence pattern*/
+        /*log_advancedEvent(eventType_localAlarmSilenceActivated, NULL);Log event to EEPROM*/
+        /*ledBuzz_Post (pattern_alarm_CO_silence); Start silence pattern*/
       }
     else
       {
@@ -842,11 +870,11 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_COHB_NONE_event_0)) != 0u)
     coState = co_none; /*Update local co state*/
     behavioural_operational_State = state_Idle; /*Change state*/
     /* Log The Alarm Stop*/
-    /* ledBuzz_Post (pattern_idle); /*Stop alarm pattern */
+    /* ledBuzz_Post (pattern_idle); Stop alarm pattern */
 }
 
 }
-/*
+
  /**
  * @brief Function definitions for Operational System Mode different State handling
  * @param flags_0 & flags_1
@@ -918,7 +946,7 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_State_Timeout_event_0)) != 0u)
 {
     /*Silence timeout so back to full alarm state*/
     DEBUG_APP("Local CO Alarm Silence Timeout", false, 0u);
-    /* log_advancedEvent(eventType_localAlarmSilenceExit, NULL); /*Log to EEPROM*/
+    /* log_advancedEvent(eventType_localAlarmSilenceExit, NULL); Log to EEPROM*/
     jumpToCOAlarm(false); /*Enter alarm state, but not as a new alarm*/
 
 }
@@ -930,8 +958,8 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_COHB_NONE_event_0)) != 0u)
      /* Clear all events*/
      coState = co_none; /*Update local co state*/
      behavioural_operational_State = state_Idle; /*Change state*/
-     /* Log The Alarm Stop*/
-     /* ledBuzz_Post (pattern_idle); /*Stop alarm pattern */
+     /* Log The Alarm Stop
+     ledBuzz_Post (pattern_idle); Stop alarm pattern */
 
 }
 
@@ -1033,7 +1061,7 @@ if ((flags_0 & FLAGS_BIT_INDEX(TMR_State_Timeout_event_0)) != 0u)
 {
     /*Silence timeout so back to full alarm state*/
      DEBUG_APP("Remote Alarm Silence Timeout", false, 0u);
-     /* log_advancedEvent(eventType_localAlarmSilenceExit, NULL); /*Log to EEPROM*/
+     /* log_advancedEvent(eventType_localAlarmSilenceExit, NULL); Log to EEPROM*/
      /* Check If remote Alarm condition is still Available  */
      /* bool Remote_Alarm=get_remote_alarm_status_MCU_2();
      if (Remote_Alarm==true)
@@ -1118,7 +1146,7 @@ static void jumpToSmokeAlarm (bool newAlarm)
       /*If newly triggered alarm reset variables*/
       // Clear_the Increased sample Rate  ;
       alarmSilenceLimitReached = false;
-      DEBUG_APP("Enter LocalSmokeAlarm state", false, 0u);
+    //  DEBUG_APP("Enter LocalSmokeAlarm state", false, 0u);
       /* Stop Any State_Timeouts*/
       BURTCTimer_Stop(TMR_State_Timeout_event_0);
 
@@ -1128,12 +1156,12 @@ if((behavioural_operational_State !=state_Smoke_Alarm) &&  (behavioural_operatio
    if((behavioural_operational_State==state_CO_Alarm) ||  (behavioural_operational_State== state_CO_Alarm_Silence ))
    {
        /* ledBuzz_Post(alarmType_Idle);
-    /* log_localAlarmEvent (alarmType_CO_END);*/
+     log_localAlarmEvent (alarmType_CO_END);*/
     }
 if((behavioural_operational_State==state_Heat_Alarm )||  (behavioural_operational_State==state_Heat_Alarm_Silence) )
    {
     /* ledBuzz_Post(alarmType_Idle);
-    /* log_localAlarmEvent (alarmType_Heat_END);*/
+     log_localAlarmEvent (alarmType_Heat_END);*/
   }
 if((behavioural_operational_State==state_Remote_Alarm ) )
    {
@@ -1162,14 +1190,14 @@ if (newAlarm == true)
     /*log_localAlarmEvent (alarmType_Heat);*/
     /* reSet the Variable for Alarm silence */
     alarmSilenceLimitReached = false;
-    DEBUG_APP("Enter LocalHeatAlarm state", false, 0u);
+  //  DEBUG_APP("Enter LocalHeatAlarm state", false, 0u);
     /* Stop Any State_Timeouts*/
      BURTCTimer_Stop(TMR_State_Timeout_event_0);
  /*If the alarm switch from  Other Low Priority Alarm to High Priority then Log Alarm Stop*/
   if((behavioural_operational_State==state_CO_Alarm) ||  (behavioural_operational_State== state_CO_Alarm_Silence ))
   {
       /* ledBuzz_Post(alarmType_Idle);
-   /* log_localAlarmEvent (alarmType_CO_END);*/
+      log_localAlarmEvent (alarmType_CO_END);*/
    }
   if((behavioural_operational_State==state_Remote_Alarm ) )
      {
@@ -1250,6 +1278,7 @@ static void handleDeviceDisable(void)
      {
 
        setBehavioural_System_Modes(Standby_Mode);
+
      }
   /*defaultVariableCO();*/
 
@@ -1364,6 +1393,42 @@ behaviour_state_enum_System_modes getBehavioural_System_Modes(bool read_From_eep
 
 
 /**
+ * @brief Stop All Timers except Timestamp
+ * @param  none
+ * @return none
+ */
+void Stop_All_timers_except_timestamp(void)
+ {
+    /* Stop All Diagnostic Timers */
+    Stop_Diagnostic_BIST();
+    /* Stop general Timers */
+    BURTCTimer_Stop(TMR_Battery_Measurement_BIST_event_0); /* For Testing */
+    BURTCTimer_Stop(TMR_CO_Variance_Acquisition_event_0);
+    /* When System is Commissioning mode & With fault */
+    if(behavioural_system_mode!=Commisioning_Mode)
+      {
+        BURTCTimer_Stop(TMR_heartbeat_event_0);
+      }
+    BURTCTimer_Stop(TMR_TempHum_measure_BIST_event_0);
+
+
+ }
+/**
+ * @brief Start All general Timers
+ * @param  none
+ * @return none
+ */
+void Start_All_timers(void)
+ {
+
+  /*Start-up: Start the three general timers */
+   BURTCTimer_Start(TMR_Battery_Measurement_BIST_event_0, periodical, SMOKE_MEASUREMENT); /* For Testing */
+   BURTCTimer_Start(TMR_CO_Variance_Acquisition_event_0, periodical, VARIANCE_PERIOD_NON_OPERATIONAL);
+   BURTCTimer_Start(TMR_heartbeat_event_0, periodical, HEARTBEAT_PERIOD);
+   BURTCTimer_Start(TMR_TempHum_measure_BIST_event_0, periodical, TEMP_HUMIDITY_PERIOD);
+
+ }
+/**
  * @brief Stop The Diagnostic BIST & Sensor Detection Timers
  * @param  none
  * @return none
@@ -1395,9 +1460,9 @@ void Start_Diagnostic_BIST(void)
             /* Co  BIST*/
             BURTCTimer_Start (TMR_CO_BIST_event_0,periodical,CO_BIST_PERIOD);
             /* Buzzer BIST*/
-            BURTCTimer_Start (TMR_BUZZER_BIST_event_0,periodical,BUZZER_BIST_PERIOD);
+            BURTCTimer_Start (TMR_BUZZER_BIST_event_0,periodical,STORT_PERIOD); /* test*/
             /* Obstacle/Laser  BIST*/
-            BURTCTimer_Start (TMR_Obstacle_Coverage_BIST_event_0,periodical,OBSTACLE_COVARAGE_PERIOD);
+            BURTCTimer_Start (TMR_Obstacle_Coverage_BIST_event_0,periodical,STORT_PERIOD); /* test*/
             /* Stop off base Variennce */
             BURTCTimer_Stop (TMR_CO_Variance_Acquisition_event_0);
  }
@@ -1425,4 +1490,16 @@ button_state_t get_switches_type(void)
 {
 
   return switch_test;
+}
+
+
+/**
+ * @brief get the operational State Type
+ * @param  none
+ * @return button_state_t
+ */
+ADS_operate_state_enum getOperateState(void)
+{
+
+  return ADS_operateState;
 }

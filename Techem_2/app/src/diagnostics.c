@@ -20,7 +20,7 @@
 #include "hal_BURTCTimer.h"
 #include "events.h"
 #include "app.h"
-#include "event_system.h"
+#include "system_events.h"
 #include "diagnostics.h"
 /**
  * @brief Diagnostics routine, run acquisition routines and check for faults.
@@ -41,6 +41,7 @@
   /* This will Periodic when device- Operational mode + ADS On +event are set by BURTC timers */
  if ( ((modes==Operational_Mode) && (ADS_status==operate_active)) && (flags!=0))
    {
+     DEBUG_DIAG("\n ",false,0u);
   if ((flags & FLAGS_BIT_INDEX(TMR_Battery_Measurement_BIST_event_0)) != 0u){
          GPIO_PinOutToggle(BSP_GPIO_LED0_PORT, BSP_GPIO_LED0_PIN);
          DEBUG_DIAG("\n Battery Measurement",false,0u);
@@ -70,7 +71,7 @@
          DEBUG_DIAG("\n Co Measurement",false,0u);
        }
      if ((flags & FLAGS_BIT_INDEX(TMR_CO_BIST_event_0)) != 0u){
-         //ABR. Add functionality code
+         DEBUG_DIAG("\n Co BIST ",false,0u);
          ;
        }
      if ((flags & FLAGS_BIT_INDEX(TMR_BUZZER_BIST_event_0)) != 0u){
@@ -86,14 +87,35 @@
  if ( (modes==Standby_Mode) && (ADS_status==operate_disabled) )
     {
 
-          DEBUG_DIAG("\n Battery Measurement",false,0u);
-          DEBUG_DIAG("\n Temp Measurement",false,0u);
+     if ((flags & FLAGS_BIT_INDEX(TMR_TempHum_measure_BIST_event_0)) != 0u){
+             GPIO_PinOutToggle(BSP_GPIO_LED0_PORT, BSP_GPIO_LED0_PIN);
+             DEBUG_DIAG("\n Standby Temp Measurement",false,0u);
+           }
+     if ((flags & FLAGS_BIT_INDEX(TMR_Battery_Measurement_BIST_event_0)) != 0u){
+               GPIO_PinOutToggle(BSP_GPIO_LED0_PORT, BSP_GPIO_LED0_PIN);
+               DEBUG_DIAG("\n Standby Battery Measurement",false,0u);
+             }
+
+     }
+ /* This will happen only when device- Transport mode */
+ if ( (modes==Transport_Mode) ||(modes==Commisioning_Mode) )
+    {
+
+     if ((flags & FLAGS_BIT_INDEX(TMR_TempHum_measure_BIST_event_0)) != 0u){
+             GPIO_PinOutToggle(BSP_GPIO_LED0_PORT, BSP_GPIO_LED0_PIN);
+             DEBUG_DIAG("\n Transport_Mode Temp Measurement",false,0u);
+           }
+     if ((flags & FLAGS_BIT_INDEX(TMR_Battery_Measurement_BIST_event_0)) != 0u){
+               GPIO_PinOutToggle(BSP_GPIO_LED0_PORT, BSP_GPIO_LED0_PIN);
+               DEBUG_DIAG("\n Transport_Mode Battery Measurement",false,0u);
+             }
+
      }
  /* This will happen only when device- Standby mode + ADS enabled first time */
  if ( (modes==Standby_Mode) && (ADS_status==operate_active) )
     {
 
-          DEBUG_DIAG("\n BIST ALL",false,0u);
+          DEBUG_DIAG("\n Perform BIST  ALL",false,0u);
 
      }
  /* This will happen only when device- Operational mode + ADS enabled first time */
@@ -110,8 +132,7 @@
 
 
 
-    DEBUG_DIAG("Diagnostics Complete", false, 0u);
-
-
+    DEBUG_DIAG("\n ********************** ",false,0u);
+    DEBUG_DIAG("\n ",false,0u);
   return diagPerformed;
 }

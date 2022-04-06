@@ -12,10 +12,6 @@
 
 extern OS_FLAG_GRP Event_Flags_TopGroup;
 extern OS_FLAG_GRP Event_Flags_SubGroup[2];
-
-
-
-
 /* ************************************************* */
 /* Behavioural Events                                */
 /*                                                   */

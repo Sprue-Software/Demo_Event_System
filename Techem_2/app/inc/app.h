@@ -17,7 +17,12 @@
 
 #ifndef APP_H
 #define APP_H
-
+#define  DEBUG_ENABLE_APP
+#ifdef DEBUG_ENABLE_APP
+#define DEBUG_APP(str, numMode, dataValue) debug_out(str,numMode,dataValue)
+#else
+#define DEBUG_APP(str, numMode, dataValue)
+#endif
 #define BSP_GPIO_LEDS
 #define BSP_NO_OF_LEDS          2
 #define BSP_GPIO_LED0_PORT      gpioPortC

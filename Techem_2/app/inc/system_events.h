@@ -1,18 +1,12 @@
 /*
- * event_system.h
+ * system_event.h
  *
- *  Created on: 29 Mar 2022
- *      Author: NDI
+ *  Created on: 4 Apr 2022
+ *      Author: ndiwathe
  */
 
-#ifndef APP_INC_EVENT_SYSTEM_H_
-#define APP_INC_EVENT_SYSTEM_H_
-
-#ifdef DEBUG_ENABLE_APP
-#define DEBUG_APP(str, numMode, dataValue) sendDebugMsg(str,numMode,dataValue)
-#else
-#define DEBUG_APP(str, numMode, dataValue)
-#endif
+#ifndef APP_INC_SYSTEM_EVENTS_H_
+#define APP_INC_SYSTEM_EVENTS_H_
 
 /* Enum defines */
 
@@ -49,7 +43,7 @@ typedef enum {
 
 
 /**
- * These are the various operate states the device can find its-self in
+ * These are the various ADS operate states
  */
 typedef enum {
   operate_active, /**< operate_active, ADS on-base, shipping tag removed*/
@@ -97,5 +91,6 @@ extern void setBehavioural_Operational_State(behaviour_state_enum_operational_St
 extern behaviour_state_enum_System_modes getBehavioural_System_Modes(bool read_From_eeprom);
 extern void setBehavioural_System_Modes(behaviour_state_enum_System_modes system_mode);
 extern behaviour_state_enum_System_modes getBehavioural_previouse_System_Modes(void);
-
-#endif /* APP_INC_EVENT_SYSTEM_H_ */
+extern void Stop_All_timers_except_timestamp(void);
+extern void Start_All_timers(void);
+#endif /* APP_INC_SYSTEM_EVENTS_H_ */

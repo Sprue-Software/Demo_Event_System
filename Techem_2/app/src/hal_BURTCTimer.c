@@ -32,7 +32,7 @@
 #include "hal_BURTCTimer.h"
 #include "events.h"
 #include "app.h"
-
+static int count=0;
 BURTCTimer_TypeDef Event_Timer[(uint8_t) NO_OF_EVENTS];
 
 /**
@@ -93,6 +93,8 @@ static void BURTCTimer_CallBack(uint64_t event)
 {
   RTOS_ERR err;
   uint32_t subgroub[2];
+/* testing*/
+  count++ ;
 
   subgroub[0] = event & 0xFFFFFFFF;
   subgroub[1] = (event >> 32) & 0xFFFFFFFF;
@@ -242,7 +244,6 @@ void GPIO_init(void)
   //GPIO_PinModeSet(BSP_GPIO_PB0_PORT, BSP_GPIO_PB0_PIN, gpioModeInput, 1);
   GPIO_PinModeSet(BSP_GPIO_LED0_PORT, BSP_GPIO_LED0_PIN, gpioModePushPull, 1); // LED0 on
   GPIO_PinModeSet(BSP_GPIO_LED1_PORT, BSP_GPIO_LED1_PIN, gpioModePushPull, 1); // LED0 on
-
 }
 
 /**************************************************************************//**
@@ -262,7 +263,7 @@ void BURTC_init(void)
   BURTC_Init(&burtcInit);
 
   BURTC_CounterReset();
-  BURTC_CompareSet(0, BURTC_COMPARE_FOR_IRQ_PERIOD_2SEC);
+  BURTC_CompareSet(0, BURTC_COMPARE_FOR_IRQ_PERIOD_10SEC);
 
   BURTC_IntEnable(BURTC_IEN_COMP);    // compare match
   NVIC_EnableIRQ(BURTC_IRQn);

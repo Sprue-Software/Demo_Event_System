@@ -1,10 +1,9 @@
 /*
- * Acquisition_heat.c
+ * Acquisition_CO.c
  *
  *  Created on: 1 Apr 2022
- *      Author:
+ *      Author: ndiwathe
  */
-
 #include  <cpu/include/cpu.h>
 #include  <common/include/common.h>
 #include  <kernel/include/os.h>
@@ -21,16 +20,16 @@
 #include "hal_BURTCTimer.h"
 #include "events.h"
 #include "app.h"
-#include "event_system.h"
+#include "system_events.h"
 #include "diagnostics.h"
-uint32_t current_Heat_value=0;
+uint32_t current_co_value=0;
 
 /**
  * @brief  This Function will return the CO Value.(Which include Compensation )
  * @return  Co value
  */
-extern uint32_t getHeatAfterCompensation(void)
+extern uint32_t getCoAfterCompensation(void)
 {
 
-  return current_Heat_value;
+  return current_co_value;
 }
