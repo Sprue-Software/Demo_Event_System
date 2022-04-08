@@ -22,7 +22,7 @@
 #include "app.h"
 #include "system_events.h"
 #include "diagnostics.h"
-uint32_t current_co_value=0;
+uint32_t current_co_value=151;
 
 /**
  * @brief  This Function will return the CO Value.(Which include Compensation )

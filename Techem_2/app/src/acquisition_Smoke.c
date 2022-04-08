@@ -24,7 +24,7 @@
 #include "system_events.h"
 #include "diagnostics.h"
 
-uint32_t current_Smoke_value=0;
+uint32_t current_Smoke_value=149;
 
 /**
  * @brief  This Function will return the CO Value.(Which include Compensation )

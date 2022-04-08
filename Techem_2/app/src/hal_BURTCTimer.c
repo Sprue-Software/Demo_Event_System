@@ -99,7 +99,6 @@ static void BURTCTimer_CallBack(uint64_t event)
   subgroub[0] = event & 0xFFFFFFFF;
   subgroub[1] = (event >> 32) & 0xFFFFFFFF;
 
-
   OSFlagPost(&Event_Flags_SubGroup[0],  /*Pointer to user-allocated event flag.*/
              subgroub[0],
              OS_OPT_POST_FLAG_SET,    //Set the flag
@@ -108,6 +107,19 @@ static void BURTCTimer_CallBack(uint64_t event)
   if (RTOS_ERR_CODE_GET(err) != RTOS_ERR_NONE){
       RTOS_ERR_SET(err, RTOS_ERR_FAIL);
   }
+#if 0
+  OSFlagPost(&Event_Flags_SubGroup[0],  /*Pointer to user-allocated event flag.*/
+                     EVENT_SMOKE_HIGH_SUPER_0,
+                     OS_OPT_POST_FLAG_SET,    //Set the flag
+                     &err);
+  OSFlagPost(&Event_Flags_SubGroup[0],  /*Pointer to user-allocated event flag.*/
+                     EVENT_HEAT_HIGH_SUPER_0,
+                     OS_OPT_POST_FLAG_SET,    //Set the flag
+                     &err);
+#endif
+     /*   Check error code.                                  */
+     APP_RTOS_ASSERT_DBG((RTOS_ERR_CODE_GET(err) == RTOS_ERR_NONE), 1);
+
   //APP_RTOS_ASSERT_DBG((RTOS_ERR_CODE_GET(err) == RTOS_ERR_NONE), 1);
 
   OSFlagPost(&Event_Flags_SubGroup[1],  /*Pointer to user-allocated event flag.*/

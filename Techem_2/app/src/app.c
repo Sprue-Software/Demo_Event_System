@@ -26,14 +26,15 @@
 #include "sl_simple_led.h"
 #include "sl_simple_led_instances.h"
 #include "os.h"
-#include "app.h"
 #include "em_emu.h"
+#include "comms_handler.h"
+#include "app.h"
 #include "hal_BURTCTimer.h"
 #include "system_events.h"
 #include "events.h"
 #include "diagnostics.h"
-#include "comms_handler.h"
 #include "sl_simple_button_instances.h"
+
 
 /*****************************************************************************
  *******************************   DEFINES   ***********************************
@@ -91,25 +92,6 @@ void OSIdleEnterHook(void);
 void OSIdleExitHook(void);
 
 
-//ABR Techem. The following is only for testing purposes
-////////////////////////////////////////////////////////////////////////////////
-sl_status_t                   status;
-sl_sleeptimer_timer_handle_t  heartbeat_timer;
-uint32_t                      heartbeat_timer_timeout;
-
-void heartbeat_timer_callback(sl_sleeptimer_timer_handle_t *handle, void *data)
-{
-  RTOS_ERR err;
-
-  if(handle!=NULL)
-  {
-      //GPIO_PinOutToggle(BSP_GPIO_LED0_PORT, BSP_GPIO_LED0_PIN);
-        {
-
-          sl_sleeptimer_stop_timer(&heartbeat_timer);
-        }
-  }
-}
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -148,13 +130,10 @@ void app_init(void)
 /**
  * @brief Run the bootup procedures, initialising all hardware, RTOS tasks and variables
  */
-#if 1
 static void app_bootup(void)
 {
-  uint32_t reset_cause=0;
-
   /* Init Code for hardware  */
-/* init Debug Message */
+  /* init Debug Message */
   comms_initTask();
   GPIO_PinOutClear(BSP_GPIO_LED0_PORT, BSP_GPIO_LED1_PIN);
 
@@ -169,17 +148,18 @@ static void app_bootup(void)
     /*get_System_Time_from_EEPROM()
      * After than set_the_system_time() & Update the Eeprom
    //Step 2: get The reset Cause
-    reset_cause=RMU_ResetCauseGet();
+     reset_cause=EMU->RSTCAUSE;
   //Step 3: get Reason for reset */
   /*record the EEPROM */
   /* log_Reset_cause();
-  /* Clear the cause of the reset. */
+   Clear the cause of the reset. */
    RMU_ResetCauseClear();
 #endif
-  /*Start the Letimer for 3-5 sec (This Will give Enough Time to Settle All tasks and accept the events) to switches_getADS () and trigger the ADS event
- /* runOperateModule()*/
+  //Start the Letimer for 3-5 sec (This Will give Enough Time to Settle All tasks and accept the events) to switches_getADS () and trigger the ADS event
+  //runOperateModule()*/
+
 }
-#endif
+
 
 
 
@@ -194,10 +174,9 @@ static void app_bootup(void)
 static void events_task(void *arg)
 {
   RTOS_ERR err;
- static uint32_t data=0;
-  (void)&arg; /*Unused paramters */
+  static uint32_t data=0; /*test*/
+  (void)&arg; /*Unused parameters */
   /*Initialise the hardware and other tasks*/
-
   app_bootup();
 
   /* Create the event flag Sub group for Sub group 0                          */
@@ -288,19 +267,8 @@ static void events_task(void *arg)
       BURTCTimer_Start(TMR_heartbeat_event_0, periodical, HEARTBEAT_PERIOD);
       BURTCTimer_Start(TMR_TempHum_measure_BIST_event_0, periodical, TEMP_HUMIDITY_PERIOD);
     }
-
-  /* FTM Testing */
-  heartbeat_timer_timeout = sl_sleeptimer_ms_to_tick(1800000u);//Convert the 5000msec to timer ticks
-  status = sl_sleeptimer_start_periodic_timer(&heartbeat_timer,
-         heartbeat_timer_timeout,
-         heartbeat_timer_callback,
-         (void *)DEF_NULL,
-         0,
-         0);
-  //ABR. This is for testing purposes on using sleep timer.
-  //////////////////////////////////////////////////////////////////////////////
-
-
+/* testing for idle mode*/
+ // Start_Diagnostic_BIST();
 
   /* This  is blocking function for Event Task, This function will unblock once Event received */
   while (true){
@@ -355,17 +323,17 @@ static void events_task(void *arg)
 #endif
     if ((flags_0 & EVENT_MODE_CHANGE_0) != 0u){
         setBehavioural_System_Modes(Transport_Mode);
-        /* This Function will be call if the System Need changes & event Task Need Calling + Run Behavioural */
-        /* SPI-MCU-2 App layer will check the mode and set the Event
+        /* This Function will be call if the System Need changes & event Task Need Calling + Run Behavioural
+         SPI-MCU-2 App layer will check the mode and set the Event
          * (Supported Mode)
          * standby <-> Operational , Standby <-> Transport, Operational > Transport
          * FTM mode is allowed from Operational, Transport, Commissioning mode only
          * Record the Time Stamp with who requested mode change
-        /* record_System_Mode_with_Time_Stamp(getBehavioural_System_Modes());*/
+         record_System_Mode_with_Time_Stamp(getBehavioural_System_Modes());*/
     }
 
     if ((flags_0 & EVENT_FAULT_SILENCE_TIMEOUT_0) != 0u){
-   //   DEBUG_APP("Fault Silence Timeout", false, 0u);
+      DEBUG_APP("Fault Silence Timeout", false, 0u);
       /*Handle fault silence timeout and check if silence period should be extended*/
      /* faults_handleFaultSilenceTimeout();*/
     }
@@ -386,6 +354,7 @@ static void events_task(void *arg)
     }
       /* Pass the events to the State machine */
     runBehaviouralModule(flags_0,flags_1);
+    SLEEP_Sleep();
   }
 
 }
@@ -576,28 +545,28 @@ void OSIdleExitHook(void)
 
 
 /***************************************************************************//**
- * Callback on button change.
+ * Callback on button change  For testing
  ******************************************************************************/
 void sl_button_on_change(const sl_button_t *handle)
 {
   RTOS_ERR err;
-  static int i;
-  if (sl_button_get_state(handle) == SL_SIMPLE_BUTTON_PRESSED) {
+   if (sl_button_get_state(handle) == SL_SIMPLE_BUTTON_PRESSED) {
     if (&sl_button_btn0 == handle) {
-        debug_out("\n Button Press ", false, 0u);
+        debug_out("\n  Button Press ", false, 0u);
         OSFlagPost(&Event_Flags_SubGroup[0],  /*Pointer to user-allocated event flag.*/
-                   EVENT_SMOKE_HIGH_SUPER_0,
+                   EVENT_BUTON_PRESS_0,
                    OS_OPT_POST_FLAG_SET,    //Set the flag
                    &err);
         /*   Check error code.                                  */
         if (RTOS_ERR_CODE_GET(err) != RTOS_ERR_NONE){
             RTOS_ERR_SET(err, RTOS_ERR_FAIL);
         }
+
     }
     if (&sl_button_btn1 == handle) {
-           debug_out("\n ADS Press ", false, 0u);
+           debug_out("\n  Heat ", false, 0u);
            OSFlagPost(&Event_Flags_SubGroup[0],  /*Pointer to user-allocated event flag.*/
-                      EVNET_ADS_ENABLE_0,
+                      EVENT_HEAT_HIGH_SUPER_0,
                       OS_OPT_POST_FLAG_SET,    //Set the flag
                       &err);
            /*   Check error code.                                  */

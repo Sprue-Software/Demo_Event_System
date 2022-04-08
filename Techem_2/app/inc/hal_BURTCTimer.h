@@ -100,6 +100,7 @@ typedef enum {
 #define OBSTACLE_COVARAGE_PERIOD PERIOD_SET(604800u)//**< Obstacle & Coverage  Detection/BIST , periodic every 7 days*/
 /*test*/
 #define STORT_PERIOD PERIOD_SET(300u)//**< Obstacle & Coverage  Detection/BIST , periodic every 7 days*/
+
 #define TEMP_HUMIDITY_PERIOD PERIOD_SET(120u) /**<Temperature & Humidity BIST & measurement,periodic= 2 min */
 #define AMBIENT_MEASUREMENT_PERIOD PERIOD_SET(360u)  /**< AmbientLight Power, periodic= every 6 min */
 #define AIRING_CONFIGURATION_TIMEOUT PERIOD_SET(30u)/**< Airing Configuration, Non-periodic 30 sec */

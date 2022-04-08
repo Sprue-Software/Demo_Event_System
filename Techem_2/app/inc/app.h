@@ -18,6 +18,7 @@
 #ifndef APP_H
 #define APP_H
 #define  DEBUG_ENABLE_APP
+
 #ifdef DEBUG_ENABLE_APP
 #define DEBUG_APP(str, numMode, dataValue) debug_out(str,numMode,dataValue)
 #else

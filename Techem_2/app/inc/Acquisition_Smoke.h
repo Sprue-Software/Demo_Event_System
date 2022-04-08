@@ -1,4 +1,4 @@
-/*
+
 /*
  *
  *  @file acquisition_Smoke.h

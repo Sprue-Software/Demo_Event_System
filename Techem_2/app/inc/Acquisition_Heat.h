@@ -1,5 +1,4 @@
 /*
-/*
  *
  *  @file acquisition_Heat.h
  *  @brief: This File describe variable required for Heat Sensing & BIST functionalities

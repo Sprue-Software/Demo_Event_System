@@ -42,6 +42,8 @@ typedef enum {
 
 extern ADS_state_t switches_getADS(void);
 extern button_state_t get_switches_type(void);
+//DUMMY testing
+button_state_t get_switches_type_1(void);
 extern void switches_checkPollStatus(void);
 
 
